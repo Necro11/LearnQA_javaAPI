@@ -1,9 +1,8 @@
 import io.restassured.RestAssured;
-import io.restassured.http.Headers;
-import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,34 +11,57 @@ public class HelloWorldTest {
 
     @Test
     public void testRestAssured() {
-        // Отправляем запрос и получаем ответ
-        JsonPath response = RestAssured
-                .get("https://playground.learnqa.ru/api/get_json_homework")
-                .jsonPath();
+        Map<String, String> headers = new HashMap<>();
+        headers.put("myHeader1", "myValue1");
+        headers.put("myHeader2", "myValue2");
 
-        // Извлекаем список сообщений
-        List<Map<String, Object>> messages = response.getList("messages");
+        String url = "https://playground.learnqa.ru/api/long_redirect";
+        int redirectCount = 0;
+        Response response = null;
+        List<String> urls = new ArrayList<>();
+        List<Integer> statusCodes = new ArrayList<>();
 
-        // Проверяем, что список не пустой
-        if (!messages.isEmpty()) {
-            // Выводим все сообщения и их временные метки
-            for (Map<String, Object> message : messages) {
-                String msg = (String) message.get("message"); // Предполагаем, что поле называется "message"
-                String timestamp = (String) message.get("timestamp"); // Предполагаем, что поле называется "timestamp"
-                System.out.println("Сообщение: " + msg + ", Время: " + timestamp);
+        while (true) {
+            response = RestAssured
+                    .given()
+                    .redirects()
+                    .follow(false)
+                    .when()
+                    .get(url)
+                    .andReturn();
+
+            int statusCode = response.getStatusCode();
+            urls.add(url);
+            statusCodes.add(statusCode);
+
+            if (statusCode == 200) {
+                break;
             }
 
-            // Если нужно вывести только второе сообщение
-            if (messages.size() > 1) {
-                Map<String, Object> secondMessage = messages.get(1);
-                String secondMsg = (String) secondMessage.get("message");
-                String secondTimestamp = (String) secondMessage.get("timestamp");
-                System.out.println("\nВторое сообщение: " + secondMsg + ", Время: " + secondTimestamp);
-            } else {
-                System.out.println("Сообщений меньше двух.");
+            String location = response.getHeader("Location");
+            if (location == null) {
+                System.out.println("No more redirects, but status code is not 200");
+                break;
             }
-        } else {
-            System.out.println("Список сообщений пуст.");
+
+            url = location;
+            redirectCount++;
         }
+
+        // Вывод всех URL и статус-кодов
+        System.out.println("Redirect chain:");
+        for (int i = 0; i < urls.size(); i++) {
+            System.out.print(urls.get(i) + " (" + statusCodes.get(i) + ")");
+            if (i < urls.size() - 1) {
+                System.out.print(" -> ");
+            }
+        }
+
+        int finalStatusCode = response.getStatusCode();
+        String finalUrl = response.getHeader("Location") != null ? response.getHeader("Location") : url;
+
+        System.out.println("\n\nNumber of redirects: " + redirectCount);
+        System.out.println("Final status code: " + finalStatusCode);
+        System.out.println("Final URL: " + finalUrl);
     }
 }

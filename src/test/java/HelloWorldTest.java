@@ -34,7 +34,7 @@ public class HelloWorldTest {
                 Map<String, Object> secondMessage = messages.get(1);
                 String secondMsg = (String) secondMessage.get("message");
                 String secondTimestamp = (String) secondMessage.get("timestamp");
-                System.out.println("Второе сообщение: " + secondMsg + ", Время: " + secondTimestamp);
+                System.out.println("\nВторое сообщение: " + secondMsg + ", Время: " + secondTimestamp);
             } else {
                 System.out.println("Сообщений меньше двух.");
             }

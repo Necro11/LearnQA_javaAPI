@@ -51,7 +51,7 @@ public class HelloWorldTest {
         // Вывод всех URL и статус-кодов
         System.out.println("Redirect chain:");
         for (int i = 0; i < urls.size(); i++) {
-            System.out.print(urls.get(i) + " (" + statusCodes.get(i) + ")");
+            System.out.print(urls.get(i) + " (" + statusCodes.get(i) + "\n)");
             if (i < urls.size() - 1) {
                 System.out.print(" -> ");
             }
